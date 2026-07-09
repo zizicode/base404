@@ -38,7 +38,7 @@ function buildEnv(): EnvConfig {
     supabaseAnonKey: required("SUPABASE_ANON_KEY"),
     corsOrigins: (process.env.CORS_ORIGIN ?? "")
       .split(",")
-      .map((origin) => origin.trim())
+      .map((origin: string) => origin.trim())
       .filter(Boolean),
     logLevel: (process.env.LOG_LEVEL as EnvConfig["logLevel"]) ?? "info",
     isProduction: nodeEnv === "production",

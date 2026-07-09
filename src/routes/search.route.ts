@@ -24,7 +24,7 @@ export const searchRoute = new Hono().get("/", async (c) => {
     p_query: query,
     p_locale: locale,
     p_limit: limit,
-  });
+  } as unknown as undefined);
 
   if (error) {
     throw new HTTPException(500, { message: `Error en búsqueda: ${error.message}` });
