@@ -14,6 +14,9 @@ interface EnvConfig {
   corsOrigins: string[];
   logLevel: "debug" | "info" | "warn" | "error";
   isProduction: boolean;
+  ingestApiKey: string;
+  /** Token opcional para bypass de admin en desarrollo local (nunca en producción) */
+  adminDevToken?: string;
 }
 
 function required(name: string): string {
@@ -42,6 +45,8 @@ function buildEnv(): EnvConfig {
       .filter(Boolean),
     logLevel: (process.env.LOG_LEVEL as EnvConfig["logLevel"]) ?? "info",
     isProduction: nodeEnv === "production",
+    ingestApiKey: required("INGEST_API_KEY"),
+    adminDevToken: process.env.ADMIN_DEV_TOKEN?.trim() || undefined,
   };
 }
 

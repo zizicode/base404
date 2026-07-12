@@ -24,7 +24,7 @@ export interface MetadataSeoLocalized {
     description: string;
     image: string;
   };
-  schema_types: Array<"TechArticle" | "FAQPage" | "HowTo" | "Product">;
+  schema_types: Array<"TechArticle" | "FAQPage" | "HowTo" | "Product" | "VideoObject">;
   schema_json_ld: Record<string, unknown>;
   robots: string;
 }
@@ -44,6 +44,17 @@ export interface AiContentFaq {
   answer: string;
 }
 
+export interface AiContentVideo {
+  title: string;
+  /** Solo el ID del video de YouTube (ej: "dQw4w9WgXcQ"), no la URL completa.
+   *  El frontend construye el embed: https://www.youtube.com/embed/{youtube_id} */
+  youtube_id: string;
+  /** Idioma HABLADO del video (código ISO 639-1: "es","en","ko",...).
+   *  INDEPENDIENTE del locale contenedor: un artículo "es" puede embeber
+   *  el único video disponible, que esté en "en". */
+  language: string;
+}
+
 export interface AiContentLocalized {
   summary: string;
   markdown_solutions: string;
@@ -52,6 +63,7 @@ export interface AiContentLocalized {
   faqs: AiContentFaq[];
   /** slugs relacionados EN EL MISMO IDIOMA (related_error_slugs de "en" apunta a slug_en de otras filas) */
   related_error_slugs: string[];
+  videos: AiContentVideo[];
 }
 
 export type AiContent = LocalizedRecord<AiContentLocalized>;
@@ -129,6 +141,9 @@ export interface ErrorCodeRow {
   /** Mantenido por trigger a partir de las claves presentes en ai_content */
   locales_generated: Locale[];
 
+  /** Mantenido por trigger: true si algún locale trae al menos 1 video */
+  has_video: boolean;
+
   status: ErrorCodeStatus;
   is_indexable: boolean;
 
@@ -154,6 +169,7 @@ export type ErrorCodeInsert = Omit<
   | "slug_es"
   | "slug_en"
   | "locales_generated"
+  | "has_video"
   | "status"
   | "is_indexable"
   | "metadata_seo"
@@ -168,6 +184,7 @@ export type ErrorCodeInsert = Omit<
     id: number;
     slug_es: string | null;
     slug_en: string | null;
+    has_video: boolean;
     status: ErrorCodeStatus;
     is_indexable: boolean;
     metadata_seo: MetadataSeo;
@@ -206,6 +223,7 @@ export interface AdminDashboardErrorsRpcRow {
   quality_score_es: number | null;
   quality_score_en: number | null;
   locales_generated: Locale[];
+  has_video: boolean;
   is_indexable: boolean;
   views_es: number;
   views_en: number;
@@ -247,6 +265,7 @@ export interface Database {
           p_only_unindexed?: boolean;
           p_status?: ErrorCodeStatus | null;
           p_missing_locale?: Locale | null;
+          p_has_video?: boolean | null;
           p_limit?: number;
           p_offset?: number;
         };

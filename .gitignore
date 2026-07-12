@@ -19,6 +19,16 @@ out/
 .env.example
 .env.production
 
+INGEST-GUIDE.md
+api-endpoints-list.md
+api-endpoints.md
+scripts/*
+seed-catalog.sql
+postman-collection.json
+public-api-docs.md
+public-endpoints-frontend.md
+public-endpoints-reference.md
+
 # Logs
 logs/
 *.log

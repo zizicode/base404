@@ -13,7 +13,9 @@ import { secureHeaders } from "hono/secure-headers";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { healthRoute } from "./routes/health.route.js";
-import { searchRoute } from "./routes/search.route.js";
+import { publicRoute } from "./routes/v1/public.route.js";
+import { adminRoute } from "./routes/v1/admin.route.js";
+import { ingestRoute } from "./routes/v1/ingest.route.js";
 
 const app = new Hono();
 
@@ -30,7 +32,9 @@ app.use(
 
 // ---- Rutas ----
 app.route("/health", healthRoute);
-app.route("/api/search", searchRoute);
+app.route("/v1", publicRoute);
+app.route("/v1/admin", adminRoute);
+app.route("/v1/ingest", ingestRoute);
 
 app.notFound((c) => c.json({ success: false, error: "Ruta no encontrada" }, 404));
 app.onError(errorHandler);
