@@ -28,6 +28,8 @@ postman-collection.json
 public-api-docs.md
 public-endpoints-frontend.md
 public-endpoints-reference.md
+ADMIN-DASHBOARD-PROMPT.md
+tools/
 
 # Logs
 logs/

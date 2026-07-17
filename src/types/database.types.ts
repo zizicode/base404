@@ -120,6 +120,7 @@ export interface CategoryRow {
   slug_en: string;
   device_type: string | null;
   icon: string | null;
+  brand_id: number | null;
   created_at: string;
 }
 

@@ -58,6 +58,7 @@ export async function adminCreateCategory(c: Context) {
     slug_en: string;
     device_type?: string | null;
     icon?: string | null;
+    brand_id?: number | null;
   }>();
   const { data, error } = await db.from("categories").insert(body).select().single();
   if (error) throw new HTTPException(500, { message: error.message });

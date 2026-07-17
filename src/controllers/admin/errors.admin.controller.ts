@@ -19,14 +19,14 @@ import type { AdminDashboardRequest } from "../../types/request-endpoints.types.
 const db = supabase as any;
 
 export async function listAdminErrors(c: Context) {
-  const q = c.req.query;
   const params: AdminDashboardRequest = {
-    minQualityScore: q("min_quality") ? Number(q("min_quality")) : undefined,
-    onlyUnindexed: q("only_unindexed") === "true" ? true : undefined,
-    status: (q("status") as AdminDashboardRequest["status"]) ?? undefined,
-    missingLocale: (q("missing_locale") as AdminDashboardRequest["missingLocale"]) ?? undefined,
-    limit: Math.min(Number(q("limit") ?? 50), 200),
-    offset: Number(q("offset") ?? 0),
+    minQualityScore: c.req.query("min_quality") ? Number(c.req.query("min_quality")) : undefined,
+    onlyUnindexed: c.req.query("only_unindexed") === "true" ? true : undefined,
+    status: (c.req.query("status") as AdminDashboardRequest["status"]) ?? undefined,
+    missingLocale: (c.req.query("missing_locale") as AdminDashboardRequest["missingLocale"]) ?? undefined,
+    hasVideo: c.req.query("has_video") === "true" ? true : c.req.query("has_video") === "false" ? false : undefined,
+    limit: Math.min(Number(c.req.query("limit") ?? 50), 200),
+    offset: Number(c.req.query("offset") ?? 0),
   };
 
   const { data, error } = await db.rpc("admin_dashboard_errors", {
@@ -34,6 +34,7 @@ export async function listAdminErrors(c: Context) {
     p_only_unindexed: params.onlyUnindexed ?? false,
     p_status: params.status ?? null,
     p_missing_locale: params.missingLocale ?? null,
+    p_has_video: params.hasVideo ?? null,
     p_limit: params.limit,
     p_offset: params.offset,
   });
@@ -75,7 +76,13 @@ export async function getAdminErrorById(c: Context) {
 
 export async function patchAdminError(c: Context) {
   const id = Number(c.req.param("id"));
-  const body = await c.req.json<Record<string, unknown>>();
+
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json<Record<string, unknown>>();
+  } catch (err) {
+    throw new HTTPException(400, { message: "Cuerpo de la petición no es JSON válido" });
+  }
 
   const { data, error } = await db
     .from("error_codes")

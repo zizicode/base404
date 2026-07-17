@@ -10,6 +10,7 @@ import { HTTPException } from "hono/http-exception";
 
 import { supabase } from "../../lib/supabase.js";
 import { ok } from "../../lib/response.js";
+import { buildLocalizedAiContent } from "../../lib/ingest-payload.js";
 import type { AiIngestionPayload, Locale } from "../../types/request-endpoints.types.js";
 
 const db = supabase as any;
@@ -37,19 +38,7 @@ async function upsertPayload(payload: AiIngestionPayload): Promise<{ id: number;
 
   for (const [locale, gen] of Object.entries(payload.generations)) {
     if (!gen) continue;
-    aiContent[locale] = {
-      summary: gen.content.summary,
-      markdown_solutions: gen.content.markdownSolutions,
-      causes: gen.content.causes,
-      steps_howto: gen.content.stepsHowTo.map((s) => ({
-        step: s.step,
-        title: s.title,
-        description: s.description,
-        image_url: s.imageUrl,
-      })),
-      faqs: gen.content.faqs,
-      related_error_slugs: gen.content.relatedErrorSlugs,
-    };
+    aiContent[locale] = buildLocalizedAiContent(gen);
     metadataSeo[locale] = {
       title: gen.seo.title,
       meta_description: gen.seo.metaDescription,

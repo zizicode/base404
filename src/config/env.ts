@@ -15,6 +15,8 @@ interface EnvConfig {
   logLevel: "debug" | "info" | "warn" | "error";
   isProduction: boolean;
   ingestApiKey: string;
+  /** URL pública del sitio para sitemaps y canónicas. Default: https://vimovies.com */
+  publicSiteUrl: string;
   /** Token opcional para bypass de admin en desarrollo local (nunca en producción) */
   adminDevToken?: string;
 }
@@ -46,6 +48,7 @@ function buildEnv(): EnvConfig {
     logLevel: (process.env.LOG_LEVEL as EnvConfig["logLevel"]) ?? "info",
     isProduction: nodeEnv === "production",
     ingestApiKey: required("INGEST_API_KEY"),
+    publicSiteUrl: (process.env.PUBLIC_SITE_URL ?? "https://vimovies.com").replace(/\/$/, ""),
     adminDevToken: process.env.ADMIN_DEV_TOKEN?.trim() || undefined,
   };
 }

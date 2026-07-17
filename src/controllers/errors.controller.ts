@@ -21,6 +21,22 @@ function resolveLocale(raw: string | undefined): Locale {
   return raw === "en" ? "en" : "es";
 }
 
+function buildPublicVideos(videos: any[] | undefined) {
+  if (!Array.isArray(videos)) return [];
+  return videos
+    .filter((v) => v && (typeof v.youtube_id === "string" || typeof v.youtubeId === "string"))
+    .map((v) => {
+      const id = (v.youtube_id ?? v.youtubeId) as string;
+      return {
+        title: v.title ?? "",
+        youtubeId: id,
+        language: v.language ?? "",
+        embedUrl: `https://www.youtube.com/embed/${id}`,
+        thumbnailUrl: `https://img.youtube.com/vi/${id}/0.jpg`,
+      };
+    });
+}
+
 export async function listPublicErrors(c: Context) {
   const locale = resolveLocale(c.req.query("locale"));
   const sort = c.req.query("sort") ?? "recent";
@@ -33,7 +49,7 @@ export async function listPublicErrors(c: Context) {
 
   let query = db
     .from("error_codes")
-    .select("id, error_code, model, slug_es, slug_en, metadata_seo, updated_at, user_engagement")
+    .select("id, error_code, model, slug_es, slug_en, metadata_seo, updated_at, user_engagement, has_video")
     .eq("status", "published");
 
   if (sort === "popular") {
@@ -68,6 +84,7 @@ export async function listPublicErrors(c: Context) {
       model: row.model,
       slug: locale === "es" ? row.slug_es : row.slug_en,
       title: seoLocale.title ?? null,
+      hasVideo: row.has_video ?? false,
       views,
       updatedAt: row.updated_at,
     };
@@ -134,6 +151,8 @@ export async function getErrorBySlug(c: Context) {
     }
   }
 
+  const publicVideos = buildPublicVideos(aiContent.videos);
+
   return c.json(ok({
     id: row.id,
     slug,
@@ -169,9 +188,9 @@ export async function getErrorBySlug(c: Context) {
         imageUrl: s.image_url ?? null,
       })),
       faqs: aiContent.faqs ?? [],
-      videos: [],
+      videos: publicVideos,
     },
-    hasVideo: false,
+    hasVideo: publicVideos.length > 0,
     engagement: {
       views: engagement?.views ?? 0,
       helpfulVotes: engagement?.helpful_votes ?? 0,

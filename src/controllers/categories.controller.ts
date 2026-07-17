@@ -22,7 +22,7 @@ function resolveLocale(raw: string | undefined): Locale {
 export async function listCategories(c: Context) {
   const locale = resolveLocale(c.req.query("locale"));
 
-  const { data, error } = await db.from("categories").select("id, name_es, name_en, slug_es, slug_en, device_type, icon").order("name_es");
+  const { data, error } = await db.from("categories").select("id, name_es, name_en, slug_es, slug_en, device_type, icon, brand_id").order("name_es");
 
   if (error) throw new HTTPException(500, { message: error.message });
 
@@ -32,6 +32,7 @@ export async function listCategories(c: Context) {
     slug: locale === "es" ? cat.slug_es : cat.slug_en,
     deviceType: cat.device_type,
     icon: cat.icon,
+    brandId: cat.brand_id,
   }));
 
   return c.json(ok({ categories }));
@@ -43,7 +44,7 @@ export async function getCategoryBySlug(c: Context) {
 
   const { data, error } = await db
     .from("categories")
-    .select("id, name_es, name_en, slug_es, slug_en, device_type, icon")
+    .select("id, name_es, name_en, slug_es, slug_en, device_type, icon, brand_id")
     .or(`slug_es.eq.${slug},slug_en.eq.${slug}`)
     .single();
 
@@ -56,6 +57,7 @@ export async function getCategoryBySlug(c: Context) {
       slug: locale === "es" ? data.slug_es : data.slug_en,
       deviceType: data.device_type,
       icon: data.icon,
+      brandId: data.brand_id,
     },
   }));
 }
@@ -68,7 +70,7 @@ export async function listErrorsByCategory(c: Context) {
 
   const { data: category, error: catErr } = await db
     .from("categories")
-    .select("id, name_es, name_en, slug_es, slug_en, device_type, icon")
+    .select("id, name_es, name_en, slug_es, slug_en, device_type, icon, brand_id")
     .or(`slug_es.eq.${slug},slug_en.eq.${slug}`)
     .single();
 
@@ -76,7 +78,7 @@ export async function listErrorsByCategory(c: Context) {
 
   let query = db
     .from("error_codes")
-    .select("id, error_code, model, slug_es, slug_en, metadata_seo, updated_at")
+    .select("id, error_code, model, slug_es, slug_en, metadata_seo, updated_at, has_video")
     .eq("category_id", category.id)
     .eq("status", "published")
     .order("updated_at", { ascending: false })
@@ -99,6 +101,7 @@ export async function listErrorsByCategory(c: Context) {
       model: row.model,
       slug: locale === "es" ? row.slug_es : row.slug_en,
       title: seoLocale.title ?? null,
+      hasVideo: row.has_video ?? false,
       updatedAt: row.updated_at,
     };
   });
@@ -126,7 +129,7 @@ export async function listErrorsByCategoryAndBrand(c: Context) {
 
   const { data: category, error: catErr } = await db
     .from("categories")
-    .select("id")
+    .select("id, name_es, name_en, slug_es, slug_en, device_type, icon, brand_id")
     .or(`slug_es.eq.${categorySlug},slug_en.eq.${categorySlug}`)
     .single();
 
@@ -134,7 +137,7 @@ export async function listErrorsByCategoryAndBrand(c: Context) {
 
   let query = db
     .from("error_codes")
-    .select("id, error_code, model, slug_es, slug_en, ai_content, updated_at")
+    .select("id, error_code, model, slug_es, slug_en, ai_content, updated_at, has_video")
     .eq("brand_id", brand.id)
     .eq("category_id", category.id)
     .eq("status", "published")
@@ -155,6 +158,8 @@ export async function listErrorsByCategoryAndBrand(c: Context) {
     model: row.model,
     slug: locale === "es" ? row.slug_es : row.slug_en,
     title: row.ai_content?.[locale]?.summary?.slice(0, 80) ?? null,
+    hasVideo: row.has_video ?? false,
+    brandId: category.brand_id,
     updatedAt: row.updated_at,
   }));
 

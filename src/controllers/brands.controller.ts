@@ -59,7 +59,7 @@ export async function listErrorsByBrand(c: Context) {
 
   let query = db
     .from("error_codes")
-    .select("id, error_code, model, slug_es, slug_en, metadata_seo, updated_at")
+    .select("id, error_code, model, slug_es, slug_en, metadata_seo, updated_at, has_video")
     .eq("brand_id", brand.id)
     .eq("status", "published")
     .order("updated_at", { ascending: false })
@@ -82,6 +82,7 @@ export async function listErrorsByBrand(c: Context) {
       model: row.model,
       slug: locale === "es" ? row.slug_es : row.slug_en,
       title: seoLocale.title ?? null,
+      hasVideo: row.has_video ?? false,
       updatedAt: row.updated_at,
     };
   });
