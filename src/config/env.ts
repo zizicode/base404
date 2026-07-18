@@ -21,6 +21,28 @@ interface EnvConfig {
   adminDevToken?: string;
 }
 
+/** Incluye la variante con/sin www de cada origen configurado. */
+function expandCorsOrigins(origins: string[]): string[] {
+  const expanded = new Set<string>();
+
+  for (const base of origins) {
+    expanded.add(base);
+
+    try {
+      const url = new URL(base);
+      const altHost = url.hostname.startsWith("www.")
+        ? url.hostname.slice(4)
+        : `www.${url.hostname}`;
+      const port = url.port ? `:${url.port}` : "";
+      expanded.add(`${url.protocol}//${altHost}${port}`);
+    } catch {
+      // Entrada mal formada: se conserva solo el valor literal.
+    }
+  }
+
+  return [...expanded];
+}
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value || value.trim().length === 0) {
@@ -41,10 +63,12 @@ function buildEnv(): EnvConfig {
     supabaseUrl: required("SUPABASE_URL"),
     supabaseServiceRoleKey: required("SUPABASE_SERVICE_ROLE_KEY"),
     supabaseAnonKey: required("SUPABASE_ANON_KEY"),
-    corsOrigins: (process.env.CORS_ORIGIN ?? "")
-      .split(",")
-      .map((origin: string) => origin.trim())
-      .filter(Boolean),
+    corsOrigins: expandCorsOrigins(
+      (process.env.CORS_ORIGIN ?? "")
+        .split(",")
+        .map((origin: string) => origin.trim())
+        .filter(Boolean),
+    ),
     logLevel: (process.env.LOG_LEVEL as EnvConfig["logLevel"]) ?? "info",
     isProduction: nodeEnv === "production",
     ingestApiKey: required("INGEST_API_KEY"),
